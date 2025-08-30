@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz App</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    :root {
+      --primary: #2563eb;
+      --secondary: #f1f5f9;
+      --success: #16a34a;
+      --error: #dc2626;
+      --white: #ffffff;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #1e293b;
+    }
+
+    .quiz-container {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
+      animation: fadeIn 0.6s ease-in-out;
+      position: relative;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 1.9rem;
+      font-weight: 700;
+    }
+
+    .progress-bar {
+      width: 100%;
+      background: var(--secondary);
+      border-radius: 1rem;
+      margin-bottom: 1.5rem;
+      height: 10px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: linear-gradient(90deg, #2563eb, #7c3aed);
+      width: 0;
+      transition: width 0.4s ease;
+    }
+
+    .question {
+      font-size: 1.2rem;
+      margin-bottom: 1.2rem;
+      font-weight: 600;
+    }
+
+    .options {
+      display: grid;
+      gap: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    button.option {
+      padding: 0.9rem;
+      border: none;
+      background: var(--secondary);
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+
+    button.option:hover:not(:disabled) {
+      background: var(--primary);
+      color: var(--white);
+      transform: translateY(-2px);
+    }
+
+    .next-btn {
+      padding: 0.9rem 2rem;
+      background: var(--primary);
+      color: var(--white);
+      border: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      font-size: 1rem;
+      display: none;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .next-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .score {
+      font-size: 1.2rem;
+      font-weight: 600;
+      margin-top: 1.2rem;
+      color: var(--primary);
+    }
+
+    .footer {
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h1>🚀 Quiz App</h1>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div class="quiz">
+      <div class="question" id="question">Question text</div>
+      <div class="options" id="options"></div>
+      <button class="next-btn" id="nextBtn">Next</button>
+      <div class="score" id="score"></div>
+    </div>
+    <!-- Visible Copyright -->
+    <div class="footer">© 2025 MrMusaddique. All Rights Reserved.</div>
+  </div>
+
+  <script>
+    const questions = [
+      { question: "What does HTML stand for?", options: ["Hyperlinks and Text Markup Language", "Home Tool Markup Language", "Hyper Text Markup Language", "Hyper Transfer Markup Language"], answer: 2 },
+      { question: "Which tag is used to insert an image in HTML?", options: ["<picture>", "<image>", "<img>", "<src>"], answer: 2 },
+      { question: "Which tag is used to create a hyperlink in HTML?", options: ["<link>", "<href>", "<a>", "<url>"], answer: 2 },
+      { question: "Which CSS property is used to change text color?", options: ["font-color", "text-color", "color", "foreground"], answer: 2 },
+      { question: "How do you select an element with the class name 'btn' in CSS?", options: ["#btn", ".btn", "btn", "*btn"], answer: 1 },
+      { question: "Which CSS property is used to change the background color?", options: ["background-color", "bgcolor", "background-style", "color-background"], answer: 0 },
+      { question: "Which keyword is used to declare a variable in JavaScript?", options: ["var", "let", "const", "All of the above"], answer: 3 },
+      { question: "Which symbol is used for single-line comments in JavaScript?", options: ["<!-- -->", "//", "/* */", "#"], answer: 1 },
+      { question: "Which method is used to print something to the browser console?", options: ["console.log()", "print()", "alert()", "document.write()"], answer: 0 },
+      { question: "What will typeof [] return in JavaScript?", options: ["object", "array", "list", "undefined"], answer: 0 }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    const questionEl = document.getElementById("question");
+    const optionsEl = document.getElementById("options");
+    const nextBtn = document.getElementById("nextBtn");
+    const scoreEl = document.getElementById("score");
+    const progressEl = document.getElementById("progress");
+
+    function showQuestion() {
+      resetState();
+      let currentQuestion = questions[currentQuestionIndex];
+      questionEl.textContent = currentQuestion.question;
+      currentQuestion.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.textContent = option;
+        button.classList.add("option");
+        button.addEventListener("click", () => selectAnswer(index));
+        optionsEl.appendChild(button);
+      });
+      updateProgress();
+    }
+
+    function resetState() {
+      nextBtn.style.display = "none";
+      optionsEl.innerHTML = "";
+    }
+
+    function selectAnswer(index) {
+      let correct = questions[currentQuestionIndex].answer;
+      const optionButtons = optionsEl.querySelectorAll(".option");
+      optionButtons.forEach((button, i) => {
+        if (i === correct) {
+          button.style.background = "var(--success)";
+          button.style.color = "white";
+        }
+        if (i === index && i !== correct) {
+          button.style.background = "var(--error)";
+          button.style.color = "white";
+        }
+        button.disabled = true;
+      });
+      if (index === correct) score++;
+      nextBtn.style.display = "inline-block";
+    }
+
+    function showScore() {
+      resetState();
+      questionEl.textContent = "🎉 Quiz Completed! 🎉";
+      scoreEl.textContent = `Your Score: ${score} / ${questions.length}`;
+      nextBtn.textContent = "Play Again";
+      nextBtn.style.display = "inline-block";
+      progressEl.style.width = "100%";
+    }
+
+    function handleNextButton() {
+      currentQuestionIndex++;
+      if (currentQuestionIndex < questions.length) {
+        showQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    function updateProgress() {
+      const progressPercent = ((currentQuestionIndex + 1) / questions.length) * 100;
+      progressEl.style.width = `${progressPercent}%`;
+    }
+
+    nextBtn.addEventListener("click", () => {
+      if (currentQuestionIndex < questions.length) {
+        handleNextButton();
+      } else {
+        currentQuestionIndex = 0;
+        score = 0;
+        nextBtn.textContent = "Next";
+        scoreEl.textContent = "";
+        progressEl.style.width = "0%";
+        showQuestion();
+      }
+    });
+
+    showQuestion();
+  </script>
+</body>
+</html>
